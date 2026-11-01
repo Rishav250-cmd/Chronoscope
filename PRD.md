@@ -1,0 +1,1 @@
+Scenario: Customers send support messages like “I was charged twice for order #1042” or “The app crashes on settings.” Build a LangGraph agent that handles each ticket end to end and remembers the conversation across messages.
