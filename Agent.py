@@ -26,6 +26,22 @@ billing_llm = ChatOpenAI(model='gpt-4o-mini')
 technical_llm = ChatOpenAI(model='gpt-4o-mini')
 general_llm = ChatOpenAI(model='gpt-4o-mini')
 
+@tool
+def extract_order_id(message: str) -> str:
+    """
+    Extracts an order ID from a customer's support message
+    using regular expressions.
+    """
+
+    pattern = r"(?:order\s*#?\s*|#)([A-Za-z0-9-]+)"
+
+    match = re.search(pattern, message, re.IGNORECASE)
+
+    if match:
+        return match.group(1)
+
+    return "No order ID found"
+
 class TicketState(TypedDict):
     ticket:str
     category:str
@@ -64,6 +80,9 @@ def route_ticket(state:TicketState) ->str:
         return "general_handler"
 
 def billing_handler(state:TicketState):
+    order_id = extract_order_id.invoke({
+        "message": state["ticket"]
+    })
     result = billing_llm.invoke(f"""
         You are a customer billing support agent.
         Help with charges, refunds, and payments.
@@ -71,6 +90,12 @@ def billing_handler(state:TicketState):
         unless it has actually been verified.
         Customer ticket: {state['ticket']}
         Urgency: {state['urgency']}
+        Extracted Order ID: {order_id}
+
+        If the order ID is NOT_FOUND, politely ask
+        the customer to provide their order ID.
+
+        Use the extracted order ID when discussing the issue.
         """)
     return {"response ":result.content}
 
