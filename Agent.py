@@ -144,9 +144,6 @@ def reviewer(state: TicketState):
     }
 
 
-
-
-
 def billing_handler(state:TicketState):
     order_id = extract_order_id.invoke({
         "message": state["ticket"]
@@ -207,6 +204,8 @@ def final_reply(state: TicketState):
     response = "\n\n".join(dict.fromkeys(paragraphs))
     print(response)
     return {"response": response}
+
+
 
 
 def review_router(state: TicketState):
@@ -313,3 +312,35 @@ workflow = graph.compile(checkpointer=memory)
 
 
 workflow
+
+config = {"configurable": {"thread_id": "test_1"}}
+
+# Run until it pauses for human approval
+workflow.invoke({"ticket": "My money has been deducted from my account but the ticket is not confirmed , #1087."}, config=config)
+
+# Auto-approve and finish
+result = workflow.invoke(Command(resume={"approved": True}),config=config)
+
+print("Category:",result["category"])
+print("Review_Score:",result["review_score"])
+print("Response:",result["response"])
+
+config = {"configurable": {"thread_id": "test_tech_1"}}
+
+result = workflow.invoke(
+    {"ticket": "The app keeps crashing every time I try to log in."},config=config)
+
+print("Category:", result["category"])
+print("Review_Score:", result["review_score"])
+print("Response:", result["response"])
+
+config = {"configurable": {"thread_id": "test_general_1"}}
+
+result = workflow.invoke(
+    {"ticket": "What are your customer support working hours?"},
+    config=config
+)
+
+print("Category:", result["category"])
+print("Review_Score:", result["review_score"])
+print("Response:", result["response"])
